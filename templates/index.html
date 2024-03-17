@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body>
+    <div class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
+      <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+        <form
+          id="uploadForm"
+          class="space-y-6"
+          action="/predict"
+          method="POST"
+          enctype="multipart/form-data"
+          onsubmit="uploadFile(event)"
+        >
+          <div>
+            <label
+              for="Malenoma"
+              class="block text-sm font-medium leading-6 text-gray-900"
+              >Melanoma Detector</label
+            >
+            <div class="mt-2">
+              <input
+                type="file"
+                id="fileInput"
+                name="file"
+                accept=".png, .jpg, .jpeg"
+                required
+                class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              />
+            </div>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              id="predictButton"
+              class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              Predict!
+            </button>
+          </div>
+        </form>
+
+        <p class="w-full flex items-center justify-center mt-5" id="result">
+          Press Predict to Analyze the Image
+        </p>
+
+        <div
+          class="w-full flex items-center justify-center mt-5 invisible"
+          id="loader"
+        >
+          <div class="w-8 h-8 animate-spin flex items-center justify-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              x="0px"
+              y="0px"
+              width="100"
+              height="100"
+              viewBox="0 0 30 30"
+            >
+              <path
+                d="M 15 3 C 12.031398 3 9.3028202 4.0834384 7.2070312 5.875 A 1.0001 1.0001 0 1 0 8.5058594 7.3945312 C 10.25407 5.9000929 12.516602 5 15 5 C 20.19656 5 24.450989 8.9379267 24.951172 14 L 22 14 L 26 20 L 30 14 L 26.949219 14 C 26.437925 7.8516588 21.277839 3 15 3 z M 4 10 L 0 16 L 3.0507812 16 C 3.562075 22.148341 8.7221607 27 15 27 C 17.968602 27 20.69718 25.916562 22.792969 24.125 A 1.0001 1.0001 0 1 0 21.494141 22.605469 C 19.74593 24.099907 17.483398 25 15 25 C 9.80344 25 5.5490109 21.062074 5.0488281 16 L 8 16 L 4 10 z"
+              ></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function uploadFile(event) {
+        document.getElementById("loader").classList.remove("invisible");
+        event.preventDefault();
+
+        const fileInput = document.getElementById("fileInput");
+        const selectedFile = fileInput.files[0];
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+
+        fetch("/predict", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.text())
+          .then((prediction_result) => {
+            document.getElementById("result").style.color = "black";
+            const res = JSON.parse(prediction_result).prediction;
+            const accuracy = JSON.parse(prediction_result).accuracy;
+            document.getElementById("result").innerText = res;
+            document.getElementById("result").innerText += " with " + accuracy + " accuracy";
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            document.getElementById("result").style.color = "red";
+            document.getElementById("result").innerText = "Something went wrong!";
+          })
+          .finally(() => {
+            document.getElementById("loader").classList.add("invisible");
+          });
+      }
+    </script>
+  </body>
+</html>
